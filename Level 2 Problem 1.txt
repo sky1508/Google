@@ -1,0 +1,127 @@
+Problem 2
+
+---------------------------------------------------------------------------------------------------
+
+Please Pass the Coded Messages
+==============================
+
+You need to pass a message to the bunny prisoners, but to avoid detection, the code you agreed to use is... 
+obscure, to say the least. The bunnies are given food on standard-issue prison plates that are stamped 
+with the numbers 0-9 for easier sorting, and you need to combine sets of plates to create the numbers 
+in the code. The signal that a number is part of the code is that it is divisible by 3. 
+
+You can do smaller numbers like 15 and 45 easily, but bigger numbers like 144 and 414 
+are a little trickier. Write a program to help yourself quickly create large numbers for 
+use in the code, given a limited number of plates to work with.
+
+You have L, a list containing some digits (0 to 9). 
+Write a function answer(L) which finds the largest number that can be made 
+from some or all of these digits and is divisible by 3. If it is not possible 
+to make such a number, return 0 as the answer. L will contain anywhere from 1 to 9 digits.  
+The same digit may appear multiple times in the list, but each element in the list may only be used once.
+
+Languages
+=========
+
+To provide a Python solution, edit solution.py
+To provide a Java solution, edit solution.java
+
+Test cases
+==========
+
+Inputs:
+    (int list) l = [3, 1, 4, 1]
+Output:
+    (int) 4311
+
+Inputs:
+    (int list) l = [3, 1, 4, 1, 5, 9]
+Output:
+    (int) 94311
+
+---------------------------------------------------------------------------------------------------
+
+Solution.java
+
+---------------------------------------------------------------------------------------------------
+package com.google.challenges;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+public class NumberGen {
+	
+	public static void main(String[] args) {
+		//int[] l = {3, 1, 4, 1, 5, 9};
+		int[] l = {3, 1, 4, 1};
+		//int[] l = {7, 1, 2, 5};
+		
+		System.out.println(answer(l));
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static int answer(int[] l){
+		
+		Arrays.sort(l);
+		
+		for(int i=0;i<l.length/2;i++) {
+		 
+		     int temp1 = l[i];
+		     l[i] = l[l.length-(i+1)];
+		     l[l.length-(i+1)] = temp1;
+		}
+		
+		/*System.out.println("Printing array l");
+		for(int i=0;i<l.length; i++)
+	    System.out.print(l[i]+" ");*/
+		
+		
+		List<Integer> s = new ArrayList<Integer>();
+	    for (Integer integer : l) {
+			s.add(integer);
+		}
+		
+	    int setSize = s.size();
+	    int finalValue = (int) (Math.pow(2, setSize));
+	    String bValue = "";
+	    String temp1="";
+	    List list = new ArrayList();
+	    
+	    for (int i = 1; i < finalValue; i++) {
+	        bValue = Integer.toBinaryString(i);
+	        int bValueSize = bValue.length();
+	        
+	        for (int k = 0; k < (setSize - bValueSize); k++) {
+	            bValue = "0" + bValue;
+	        }
+	        
+
+	        for (int j = 0; j < setSize; j++) {
+	            if (bValue.charAt(j) == '1') {
+	                temp1=temp1+s.get(j);
+	            }
+	        }
+	        
+	        if(Integer.parseInt(temp1)%3 == 0){
+	        	list.add(Integer.parseInt(temp1));
+	        }
+	        temp1="";
+	    }
+	   
+	    /*
+	   System.out.println("Printing divisble by 3 list");
+        for (Object obj : list) {
+			System.out.println(obj);
+		}
+        
+        System.out.println("max "+Collections.max(list));*/
+	    if(list.size() == 0){
+	    	return 0;
+	    }else{
+	    	return (int) Collections.max(list);
+	    }	
+	}
+}
+----------------------------------------------------------------------------------------------------
