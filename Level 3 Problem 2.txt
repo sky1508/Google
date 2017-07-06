@@ -1,0 +1,457 @@
+Problem 5 (Lvl 3 Part 2)
+
+-----------------------------------------------------------------------------------------
+Doomsday Fuel
+=============
+
+Making fuel for the LAMBCHOP's reactor core is a tricky process because of the exotic matter involved. 
+It starts as raw ore, then during processing, begins randomly changing between forms, eventually 
+reaching a stable form. There may be multiple stable forms that a sample could ultimately reach, 
+not all of which are useful as fuel. 
+
+Commander Lambda has tasked you to help the scientists increase fuel creation efficiency by 
+predicting the end state of a given ore sample. You have carefully studied the different structures 
+that the ore can take and which transitions it undergoes. It appears that, while random, 
+the probability of each structure transforming is fixed. That is, each time the ore is 
+in 1 state, it has the same probabilities of entering the next state (which might be the same state).  
+You have recorded the observed transitions in a matrix. The others in the lab have hypothesized 
+more exotic forms that the ore can become, but you haven't seen all of them.
+
+Write a function answer(m) that takes an array of array of nonnegative ints representing 
+how many times that state has gone to the next state and return an array of ints for each 
+terminal state giving the exact probabilities of each terminal state, represented as the 
+numerator for each state, then the denominator for all of them at the end and in simplest form. 
+The matrix is at most 10 by 10. It is guaranteed that no matter which state the ore is in,
+ there is a path from that state to a terminal state. That is, the processing will always 
+ eventually end in a stable state. The ore starts in state 0. The denominator will fit within a 
+ signed 32-bit integer during the calculation, as long as the fraction is simplified regularly. 
+
+For example, consider the matrix m:
+[
+  [0,1,0,0,0,1],  # s0, the initial state, goes to s1 and s5 with equal probability
+  [4,0,0,3,2,0],  # s1 can become s0, s3, or s4, but with different probabilities
+  [0,0,0,0,0,0],  # s2 is terminal, and unreachable (never observed in practice)
+  [0,0,0,0,0,0],  # s3 is terminal
+  [0,0,0,0,0,0],  # s4 is terminal
+  [0,0,0,0,0,0],  # s5 is terminal
+]
+So, we can consider different paths to terminal states, such as:
+s0 -> s1 -> s3
+s0 -> s1 -> s0 -> s1 -> s0 -> s1 -> s4
+s0 -> s1 -> s0 -> s5
+Tracing the probabilities of each, we find that
+s2 has probability 0
+s3 has probability 3/14
+s4 has probability 1/7
+s5 has probability 9/14
+So, putting that together, and making a common denominator, gives an answer in the form of
+[s2.numerator, s3.numerator, s4.numerator, s5.numerator, denominator] which is
+[0, 3, 2, 9, 14].
+
+Languages
+=========
+
+To provide a Python solution, edit solution.py
+To provide a Java solution, edit solution.java
+
+Test cases
+==========
+
+Inputs:
+    (int) m = [[0, 2, 1, 0, 0], [0, 0, 0, 3, 4], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]
+Output:
+    (int list) [7, 6, 8, 21]
+
+Inputs:
+    (int) m = [[0, 1, 0, 0, 0, 1], [4, 0, 0, 3, 2, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]
+Output:
+    (int list) [0, 3, 2, 9, 14]
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+Solution.java
+-------------------------------------------------------------------------------------------------------------------------------
+
+package com.google.challenges;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class Answer5 {
+	public static void main(String[] args) {
+        // TODO Auto-generated method stub
+        // int m[][] = {
+        // { 0, 1, 1, 0, 0, 1, 0, 0, 1, 1 },
+        // { 4, 0, 0, 3, 2, 0, 3, 0, 4, 0 },
+        // { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+        // { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 },
+        // { 1, 0, 0, 5, 0, 0, 7, 0, 0, 0 },
+        // { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        // { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        // { 0, 4, 0, 0, 0, 0, 0, 0, 0, 0 },
+        // { 5, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        // };
+
+         int m1[][] = {
+         {0,2,1,0,0},
+         {0,0,0,3,4},
+         {0,0,0,0,0},
+         {0,0,0,0,0},
+         {0,0,0,0,0}
+         };
+         
+        /* int m3[][] = {{0, 1, 0, 0, 0, 0}, 
+        		 {0, 0, 1,  0, 0, 1}, 
+        		 {0, 0, 0, 0, 0, 0}, 
+        		 {0, 0, 0, 0, 0, 0}, 
+        		 {0, 0, 0, 0, 0, 0}, 
+        		 {0, 0, 0, 0, 0, 0}};*/
+        		 
+
+        /*int m2[][] = {
+                {0,40},
+                {0,0}               
+             {0,0,0}
+        };*/
+
+        int[] output = answer(m1);
+        System.out.println(Arrays.toString(output));
+    }
+
+    public static int[] answer(int[][] m) { 
+    	if(m.length == 1){
+    		int[] arr={1,1};
+    		return arr;
+    	}
+    	else{
+    		double[][] orignal = generateNewArray(m);
+            int denominaterCount = 0;
+            ArrayList<Integer> nonEndedList = new ArrayList<Integer>();
+            ArrayList<Integer> endedList = new ArrayList<Integer>();
+            int[] deno = new int[m.length];
+
+            //Loop to determine which arrays are nonterminating & which are terminating
+            for (int row = 0; row < m.length; row++) {
+                int sum = 0;
+                for (int column = 0; column < m[0].length; column++) {
+                    sum += m[row][column];
+                }
+                if(row == 0 && sum == 0){
+                    return new int[1];
+                }
+                if (sum > 0) {
+                    nonEndedList.add(row);
+                    deno[denominaterCount++] = sum;
+                } else {
+                    endedList.add(row);
+                }
+            }
+
+            //Creates Q & I array with size of nonterminatedlist
+            double[][] subractArr1 = new double[nonEndedList.size()][nonEndedList.size()];
+            double[][] subractArr2 = new double[nonEndedList.size()][nonEndedList.size()];
+            for (int i = 0; i < nonEndedList.size(); i++) {
+                for (int j = 0; j < nonEndedList.size(); j++) {
+                    double temp = orignal[nonEndedList.get(i)][nonEndedList.get(j)];
+                    subractArr1[i][j] = temp/(double)deno[i];              
+                    if(i == j)
+                        subractArr2[i][j] = 1;
+                    else
+                        subractArr2[i][j] = 0;
+                }
+            }
+
+            Matrix tempSubractArr1 = new Matrix(subractArr1);
+            Matrix tempSubractArr2 = new Matrix(subractArr2);
+            Matrix tempResultArr = MatrixOperations.subtract(tempSubractArr2, tempSubractArr1);
+
+            Matrix inverseResArr = MatrixOperations.inverse(tempResultArr);
+           
+            double[][] multiplyArr2 = new double[nonEndedList.size()][endedList.size()];
+
+            for(int i = 0; i < nonEndedList.size(); i++){
+                for(int j = 0; j < endedList.size(); j++){
+                    multiplyArr2[i][j] = orignal[nonEndedList.get(i)][endedList.get(j)]/deno[i];
+                }
+            }
+
+            Matrix tempMultiplyArr2 = new Matrix(multiplyArr2);
+            Matrix multiplyResArr = MatrixOperations.multiply(inverseResArr, tempMultiplyArr2);
+
+            double[][] fractionArr = multiplyResArr.getValues(); 
+
+            int[] finalNumeratorArr = new int[endedList.size()];
+            int[] finalDenominatorArr = new int[endedList.size()];
+
+            for(int i = 0; i < endedList.size(); i++){
+
+                int[] fractionValue = convertDecimalToFraction(fractionArr[0][i]);
+                finalNumeratorArr[i] = fractionValue[0];
+                finalDenominatorArr[i] = fractionValue[1];
+            }
+
+            int lcm = lcm(finalDenominatorArr);
+            int[] resultArr = new int[endedList.size()+1];
+            resultArr[endedList.size()] = lcm;
+            for(int i = 0; i<endedList.size(); i++){
+                int temp = lcm/finalDenominatorArr[i];
+                resultArr[i] = finalNumeratorArr[i] * temp; 
+            }
+
+            return resultArr;
+    	}
+    		
+        
+    }
+    
+    //Creates a double array from exisiting int array
+    private static double[][] generateNewArray(int[][] m) {
+        double[][] orignal = new double[m.length][m[0].length];
+        for (int row = 0; row < m.length; row++) {          
+            for (int column = 0; column < m[0].length; column++) {              
+                orignal[row][column] = (double)m[row][column];
+            }           
+        }
+        return orignal;
+    }
+
+    static private int[] convertDecimalToFraction(double x) {
+        if (x < 0.0){
+            return convertDecimalToFraction(-x);
+        }
+        double tolerance = 1.0E-6;
+        double h1=1; double h2=0;
+        double k1=0; double k2=1;
+        double b = x;
+        do {
+            double a = Math.floor(b);
+            double aux = h1; h1 = a*h1+h2; h2 = aux;
+            aux = k1; k1 = a*k1+k2; k2 = aux;
+            b = 1/(b-a);
+        } while (Math.abs(x-h1/k1) > x*tolerance);
+
+        int[] fraction = new int[2];
+        fraction[0] = (int)h1;
+        fraction[1] = (int)k1;
+        return fraction;
+    }
+
+    //Called by LCM(int, int) to calc GCD of int & int to calc LCM
+    private static int gcd(int a, int b) {
+        while (b > 0)
+        {
+            int temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+    }
+
+    //Calculates LCM of given array
+    private static int lcm(int[] input) {
+        int result = input[0];
+        for(int i = 1; i < input.length; i++) 
+        	result = result * (input[i] / gcd(result, input[i]));
+        
+        return result;
+    }
+
+}
+
+class Matrix {
+
+    private int rows;
+    private int column;
+    private double[][] data;
+
+    public Matrix(double[][] data) {
+        this.data = data;
+        this.rows = data.length;
+        this.column = data[0].length;
+    }
+
+    public Matrix(int row, int col) {
+        this.rows = row;
+        this.column = col;
+        data = new double[row][col];
+    }
+
+    public int getRows() {
+        return rows;
+    }
+
+    public void setRows(int nrows) {
+        this.rows = nrows;
+    }
+
+    public int getColumn() {
+        return column;
+    }
+
+    public void setColumn(int col) {
+        this.column = col;
+    }
+
+    public double[][] getValues() {
+        return data;
+    }
+
+    public void setValues(double[][] values) {
+        this.data = values;
+    }
+
+    public void setValueAt(int row, int col, double value) {
+        data[row][col] = value;
+    }
+
+    public double getValueAt(int row, int col) {
+        return data[row][col];
+    }
+
+    public boolean isSquare() {
+        return rows == column;
+    }
+
+    public int size() {
+        if (isSquare())
+            return rows;
+        return -1;
+    }
+
+    //Called by MatrixMathmatics functions inverse, subract
+    public Matrix multiplyByConstant(double constant) {
+        Matrix matrix = new Matrix(rows, column);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < column; j++) {
+            	matrix.setValueAt(i, j, data[i][j] * constant);
+            }
+        }
+        return matrix;
+    }
+    
+    /*public Matrix insertColumnWithValue1() {
+        Matrix newMat = new Matrix(this.getRows(), this.getColumn()+1);
+        for (int i=0;i<newMat.getRows();i++) {
+            for (int j=0;j<newMat.getColumn();j++) {
+                if (j==0)
+                	newMat.setValueAt(i, j, 1.0);
+                else 
+                	newMat.setValueAt(i, j, this.getValueAt(i, j-1));
+
+            }
+        }
+        return newMat;
+    }*/
+}
+
+class MatrixOperations {
+
+    private MatrixOperations(){}
+
+    public static Matrix transpose(Matrix matrix) {
+        Matrix transposedMatrix = new Matrix(matrix.getColumn(), matrix.getRows());
+        for (int i=0;i<matrix.getRows();i++) {
+            for (int j=0;j<matrix.getColumn();j++) {
+                transposedMatrix.setValueAt(j, i, matrix.getValueAt(i, j));
+            }
+        }
+        return transposedMatrix;
+    }
+
+    public static Matrix inverse(Matrix matrix){
+        if(matrix.size() == 1){
+             double[][] m = new double[1][1];
+             double[][] getMat = matrix.getValues();
+             double value = 1/getMat[0][0];
+             m[0][0] = value;
+             Matrix mObj = new Matrix(m);
+             return mObj;
+        }
+        return (transpose(cofactor(matrix)).multiplyByConstant(1.0/determinant(matrix)));
+    }
+
+    public static double determinant(Matrix matrix){
+        if (!matrix.isSquare())
+        {}
+        if (matrix.size() == 1){
+            return matrix.getValueAt(0, 0);
+        }
+
+        if (matrix.size()==2) {
+            return (matrix.getValueAt(0, 0) * matrix.getValueAt(1, 1)) - ( matrix.getValueAt(0, 1) * matrix.getValueAt(1, 0));
+        }
+        double sum = 0.0;
+        for (int i=0; i<matrix.getColumn(); i++) {
+            sum += changeSign(i) * matrix.getValueAt(0, i) * determinant(createSubMatrix(matrix, 0, i));
+        }
+        return sum;
+    }
+
+    private static int changeSign(int i) {
+        if (i%2==0)
+            return 1;
+        return -1;
+    }
+
+    public static Matrix createSubMatrix(Matrix matrix, int excluding_row, int excluding_col) {
+        Matrix mat = new Matrix(matrix.getRows()-1, matrix.getColumn()-1);
+        int r = -1;
+        for (int i=0;i<matrix.getRows();i++) {
+            if (i==excluding_row)
+                continue;
+                r++;
+                int c = -1;
+            for (int j=0;j<matrix.getColumn();j++) {
+                if (j==excluding_col)
+                    continue;
+                mat.setValueAt(r, ++c, matrix.getValueAt(i, j));
+            }
+        }
+        return mat;
+    }
+
+    public static Matrix cofactor(Matrix matrix) {
+        Matrix mat = new Matrix(matrix.getRows(), matrix.getColumn());
+        for (int i=0;i<matrix.getRows();i++) {
+            for (int j=0; j<matrix.getColumn();j++) {
+                mat.setValueAt(i, j, changeSign(i) * changeSign(j) * determinant(createSubMatrix(matrix, i, j)));
+            }
+        }
+
+        return mat;
+    }
+
+    public static Matrix add(Matrix matrix1, Matrix matrix2){
+        if (matrix1.getColumn() != matrix2.getColumn() || matrix1.getRows() != matrix2.getRows())
+        {}
+        Matrix sumMatrix = new Matrix(matrix1.getRows(), matrix1.getColumn());
+        for (int i=0; i<matrix1.getRows();i++) {
+            for (int j=0;j<matrix1.getColumn();j++) 
+                sumMatrix.setValueAt(i, j, matrix1.getValueAt(i, j) + matrix2.getValueAt(i,j));
+
+        }
+        return sumMatrix;
+    }
+
+    public static Matrix subtract(Matrix matrix1, Matrix matrix2) {
+        return add(matrix1,matrix2.multiplyByConstant(-1));
+    }
+
+    public static Matrix multiply(Matrix matrix1, Matrix matrix2)  {
+        Matrix multipliedMatrix = new Matrix(matrix1.getRows(), matrix2.getColumn());
+
+        for (int i=0;i<multipliedMatrix.getRows();i++) {
+            for (int j=0;j<multipliedMatrix.getColumn();j++) {
+                double sum = 0.0;
+                for (int k=0;k<matrix1.getColumn();k++) {
+                    sum += matrix1.getValueAt(i, k) * matrix2.getValueAt(k, j);
+                }
+                multipliedMatrix.setValueAt(i, j, sum);
+            }
+        }
+        return multipliedMatrix;
+    }
+}
+
+
+-------------------------------------------------------------------------------------------------------------------------------
